@@ -1,7 +1,7 @@
 CC = clang
 CFLAGS = -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -O2
 FRAMEWORKS = -framework IOKit -framework CoreFoundation -F/System/Library/PrivateFrameworks -lIOReport
-TARGET = powermetrics_rebuilt
+TARGET = rootless-powermetrics
 
 SRCS = main.c ane_power.c cpu_power.c gpu_power.c clpc.c peripherals.c tasks.c task_array.c util.c
 OBJS = $(SRCS:.c=.o)

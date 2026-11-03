@@ -1,4 +1,4 @@
-# powermetrics-decompiled
+# rootless-powermetrics
 
 A clean, rootless, open-source reimplementation of Apple's `powermetrics` utility for Apple Silicon (ARM64e macOS), created by reverse engineering `/usr/bin/powermetrics` and macOS private frameworks (`IOReport`, `AppleCLPC`, and `libproc`).
 
@@ -8,9 +8,9 @@ A clean, rootless, open-source reimplementation of Apple's `powermetrics` utilit
 
 In [`freedomtan/test-ioreport`](https://github.com/freedomtan/test-ioreport/), the initial groundwork explored how to extract undocumented IOKit `IOReport` telemetry without invoking `powermetrics(1)`.
 
-`powermetrics-decompiled` takes that research to its logical conclusion:
+`rootless-powermetrics` takes that research to its logical conclusion:
 1. **Full Reconstruction**: Fully decompiling and reverse engineering `/usr/bin/powermetrics` (ARM64e binary disassembled into `powermetrics_arm64e.s`).
-2. **100% Rootless Operation**: Apple's native `/usr/bin/powermetrics` relies on `/usr/lib/libpmsample.dylib`, which enforces an explicit root check (`pm_samples_init: Must be run as root!`). This project bypasses `libpmsample` completely by implementing rootless process telemetry directly via Darwin's `<libproc.h>` (`proc_pidinfo` with `PROC_PIDTASKALLINFO`), allowing non-privileged users to monitor CPU, GPU, ANE, and process-level energy consumption without `sudo` or special entitlements.
+2. **100% Rootless Operation**: Apple's native `/usr/bin/powermetrics` relies on `/usr/lib/libpmsample.dylib`, which enforces an explicit root check (`pm_samples_init: Must be run as root!`). This project bypasses `libpmsample` completely by implementing rootless process telemetry directly via Darwin's `<libproc.h>` (`proc_pidinfo` with `PROC_PIDTASKALLINFO`), allowing non-privileged users to monitor CPU, GPU, ANE, and process-level energy consumption without `sudo` or any private entitlements.
 3. **CLPC & IOReport Deep-Dive**: Uncovering the proprietary Apple Silicon CPU Low Power Controller (CLPC / `AppleARMIODevice`) interface, user client selectors, and channel obfuscation.
 
 For technical deep-dives into ARM64e disassembly, CLPC UserClient selector 5, report name de-obfuscation (`kReportingObfuscationData`), and caller graphs, see [`POWERMETRICS_AND_CLPC_ARM64E_REVERSE_ENGINEERING.md`](POWERMETRICS_AND_CLPC_ARM64E_REVERSE_ENGINEERING.md).
@@ -32,7 +32,7 @@ For technical deep-dives into ARM64e disassembly, CLPC UserClient selector 5, re
 ## Project Structure
 
 ```
-powermetrics_decompiled/
+rootless-powermetrics/
 ├── Makefile                                          # Build script with ad-hoc signing
 ├── README.md                                         # This documentation
 ├── POWERMETRICS_AND_CLPC_ARM64E_REVERSE_ENGINEERING.md # Reverse-engineering analysis of ARM64e binary & CLPC
@@ -46,7 +46,6 @@ powermetrics_decompiled/
 ├── task_array.c                                      # Dynamic array handling for task records
 ├── peripherals.c                                     # Battery and peripheral metrics
 ├── util.c                                            # IOReport helpers and formatting utilities
-├── entitlements.plist                                # Minimal ad-hoc entitlements
 └── powermetrics_arm64e.s                             # Original ARM64e disassembly reference
 ```
 
@@ -60,7 +59,7 @@ Prerequisites: macOS with Xcode Command Line Tools on Apple Silicon (M1/M2/M3/M4
 make
 ```
 
-The resulting binary `powermetrics_rebuilt` is automatically ad-hoc codesigned.
+The resulting binary `rootless-powermetrics` is automatically ad-hoc signed (zero entitlements required).
 
 To clean build artifacts:
 ```bash
@@ -74,7 +73,7 @@ make clean
 Run without `sudo`:
 
 ```bash
-./powermetrics_rebuilt [options]
+./rootless-powermetrics [options]
 ```
 
 ### Options
@@ -97,17 +96,17 @@ Run without `sudo`:
 
 Sample all components every second:
 ```bash
-./powermetrics_rebuilt -i 1000
+./rootless-powermetrics -i 1000
 ```
 
 Sample CPU and tasks 5 times:
 ```bash
-./powermetrics_rebuilt -i 1000 -n 5 -s cpu_power,tasks
+./rootless-powermetrics -i 1000 -n 5 -s cpu_power,tasks
 ```
 
 Sample GPU and ANE power:
 ```bash
-./powermetrics_rebuilt -i 500 -s gpu_power,ane_power
+./rootless-powermetrics -i 500 -s gpu_power,ane_power
 ```
 
 ---

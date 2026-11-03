@@ -1,0 +1,3 @@
+*.o
+powermetrics_rebuilt
+.DS_Store
